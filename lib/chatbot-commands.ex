@@ -31,8 +31,18 @@ defmodule Chatbot.Commands do
             IO.puts("Odpowiedź modelu:")
             IO.puts(response)
 
-          {:error, reason} -> IO.puts("Error: #{reason}")
+          {:error, reason} -> IO.puts("Błąd: #{reason}")
         end
+    end
+  end
+
+  def ask_with_model(model_name, prompt) do
+    case Chatbot.Ollama.run_model(model_name, prompt) do
+      {:ok, response} ->
+        IO.puts("Odpowiedź modelu:")
+        IO.puts(response)
+
+      {:error, reason} -> IO.puts("Błąd: #{reason}")
     end
   end
 

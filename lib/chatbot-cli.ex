@@ -1,61 +1,35 @@
 defmodule Chatbot.CLI do
   def main(args) do
-    case parse_args(args) do
-      {:ok, %{model: model, prompt: prompt}} ->
-        run_model_prompt(model, prompt)
+    {parsed_args, _positional_args, _invalid_args} = parse_args(args)
 
-      {:ok, %{list: true}} ->
-        list_models()
+    case parsed_args do
+      [model: model, prompt: prompt] when is_binary(model) and is_binary(prompt) ->
+        Chatbot.Commands.ask_with_model(model, prompt)
 
-      {:ok, %{show: model}} ->
-        show_model(model)
+      [list: true] ->
+        Chatbot.Commands.list()
 
-      {:ok, %{pull: model}} ->
-        pull_model(model)
+      [show: model] when is_binary(model) ->
+        Chatbot.Commands.show(model)
 
-      :help ->
+      [pull: model] when is_binary(model) ->
+        Chatbot.Commands.pull(model)
+
+      [help: true] ->
         IO.puts("""
-        Usage:
-          ./chatbot --model=<model_name> --prompt="<your prompt>"
+        Użycie:
+          ./chatbot --model=<nazwa_modelu> --prompt="<twoja wiadomość>"
           ./chatbot --list
-          ./chatbot --show=<model_name>
-          ./chatbot --pull=<model_name>
+          ./chatbot --show=<nazwa_modelu>
+          ./chatbot --pull=<nazwa_modelu>
         """)
 
       _ ->
-        IO.puts("Invalid arguments. Use --help for usage.")
+        IO.puts("Nieprawidłowe argumenty. Użyj --help, aby uzyskać pomoc.")
     end
   end
 
   defp parse_args(args) do
-    OptionParser.parse(args, switches: [model: :string, prompt: :string, list: :boolean, show: :string, pull: :string])
-  end
-
-  defp run_model_prompt(model, prompt) do
-    case Chatbot.Ollama.run_model(model, prompt) do
-      {:ok, response} -> IO.puts(response)
-      {:error, reason} -> IO.puts("Error: #{reason}")
-    end
-  end
-
-  defp list_models() do
-    case Chatbot.Ollama.list_models() do
-      {:ok, models} -> Enum.each(models, &IO.puts/1)
-      {:error, reason} -> IO.puts("Error: #{reason}")
-    end
-  end
-
-  defp show_model(model) do
-    case Chatbot.Ollama.show_model(model) do
-      {:ok, details} -> IO.inspect(details, pretty: true)
-      {:error, reason} -> IO.puts("Error: #{reason}")
-    end
-  end
-
-  defp pull_model(model) do
-    case Chatbot.Ollama.pull_model(model) do
-      {:ok, _} -> IO.puts("Model #{model} pulled successfully.")
-      {:error, reason} -> IO.puts("Error: #{reason}")
-    end
+    OptionParser.parse(args, switches: [model: :string, prompt: :string, list: :boolean, show: :string, pull: :string, help: :boolean])
   end
 end
