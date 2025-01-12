@@ -6,6 +6,13 @@ defmodule Chatbot.Commands do
     end
   end
 
+  defp ensure_history_started do
+    case Process.whereis(Chatbot.History) do
+      nil -> Chatbot.History.start_link(nil)
+      _ -> :ok
+    end
+  end
+
   def model(model_name) do
     ensure_state_started()
     case Chatbot.Ollama.list_models() do
@@ -23,14 +30,15 @@ defmodule Chatbot.Commands do
 
   def ask(prompt) do
     ensure_state_started()
+    ensure_history_started()
     case Chatbot.State.get_model() do
       nil -> IO.puts("Nie wybrano modelu. Wybierz model za pomocą komendy 'model(<model_name>)'.")
       model ->
         case Chatbot.Ollama.run_model(model, prompt) do
           {:ok, response} ->
+            Chatbot.History.save_message({prompt, response})
             IO.puts("Odpowiedź modelu:")
             IO.puts(response)
-
           {:error, reason} -> IO.puts("Błąd: #{reason}")
         end
     end
@@ -69,6 +77,14 @@ defmodule Chatbot.Commands do
     case Chatbot.Ollama.pull_model(model_name) do
       {:ok, _} -> IO.puts("Pomyślnie pobrano model o nazwie #{model_name}.")
       {:error, reason} -> IO.puts("Błąd podczas pobierania modelu: #{reason}")
+    end
+  end
+
+  def history do
+    ensure_history_started()
+    case Chatbot.History.get_history() do
+      [] -> IO.puts("Brak historii.")
+      history -> Enum.each(history, fn {prompt, response} -> IO.puts("Prompt: #{prompt}\nOdpowiedź: #{response}") end)
     end
   end
 end
