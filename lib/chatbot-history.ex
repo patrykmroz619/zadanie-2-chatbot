@@ -1,7 +1,6 @@
 defmodule Chatbot.History do
   use GenServer
 
-  # Client API
   def start_link(_) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
@@ -14,7 +13,6 @@ defmodule Chatbot.History do
     GenServer.call(__MODULE__, :get_history)
   end
 
-  # Server Callbacks
   def init(_) do
     {:ok, []}
   end

@@ -84,7 +84,7 @@ defmodule Chatbot.Commands do
     ensure_history_started()
     case Chatbot.History.get_history() do
       [] -> IO.puts("Brak historii.")
-      history -> Enum.each(history, fn {prompt, response} -> IO.puts("Prompt: #{prompt}\nOdpowiedź: #{response}") end)
+      history -> Enum.each(history, fn {prompt, response} -> IO.puts("Prompt: #{prompt}\nOdpowiedź: #{response}\n") end)
     end
   end
 end
